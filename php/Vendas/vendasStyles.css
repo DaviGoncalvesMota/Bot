@@ -1,0 +1,48 @@
+ * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #1C1C1C; /* Fundo preto robótico */
+    color: #C0C0C0; /* Texto prata metálica */
+}
+
+form {
+    background-color: #2A2A2A; /* Cinza aço para o fundo do form */
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px rgba(0, 255, 255, 0.1); /* Sombra azul ciano sutil */
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+h1 {
+    margin-bottom: 10px;
+    color: #00FFFF; /* Azul claro suave para título */
+}
+
+table {
+    width: 100%;
+    margin-top: 10px;
+    border-collapse: collapse;
+    color: #C0C0C0; /* Texto prata */
+}
+
+th,
+td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #444; /* Linha divisória escura */
+}
+
+th {
+    background-color: #1C1C1C; /* Fundo escuro */
+    color: #00FFFF; /* Azul claro suave */
+}
+
+td:first-child {
+    font-weight: bold;
+}

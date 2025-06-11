@@ -1,0 +1,65 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #1C1C1C; /* Fundo preto robótico */
+    color: #D6D6D6; /* Texto prata mais claro para melhor visibilidade */
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.1); /* sombra leve */
+}
+
+form {
+    background-color: #2A2A2A; /* Cinza aço */
+    padding: 1%;
+    border-radius: 5px;
+    max-width: 500px;
+    margin: 0 auto;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.1); /* sombra azul ciano suave */
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #C0C0C0; /* azul ciano suave */
+    text-shadow: 0 0 2px rgba(0, 191, 255, 0.3); /* sombra leve para o texto */
+}
+
+input[type="password"] {
+    padding: 10px;
+    border: 1px solid #C0C0C0; /* prata metálico */
+    border-radius: 5px;
+    width: 50%;
+    margin-top: 5px;
+    background-color: #1C1C1C; /* fundo preto */
+    color: #D6D6D6; /* texto prata mais claro */
+    text-shadow: 0 0 2px rgba(255, 255, 255, 0.1); /* sombra leve */
+}
+
+input[type="password"]::placeholder {
+    color: #8A9CBF; /* cinza azulado suave para placeholder */
+}
+
+input[type="submit"] {
+    padding: 10px;
+    background-color: #7B68EE; /* roxo da página de login */
+    border: none;
+    color: #1C1C1C; /* texto escuro */
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    transition: background-color 0.3s ease;
+}
+
+input[type="submit"]:hover {
+    background-color: #5A4DB2; /* roxo mais escuro no hover */
+}
+
+h2 {
+    color: #00FFFF; /* azul ciano suave */
+    text-shadow: 0 0 2px rgba(0, 191, 255, 0.3); /* sombra leve para o texto */
+}

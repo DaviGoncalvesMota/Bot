@@ -1,0 +1,90 @@
+ * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #1C1C1C; /* Fundo preto robótico */
+  color: #C0C0C0; /* Texto prata metálica */
+}
+
+form {
+  background-color: #2A2A2A; /* Cinza aço */
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.15); /* sombra ciano suave */
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+table {
+  width: 100%;
+  color: #C0C0C0; /* Texto da tabela em prata */
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #444; /* Linha sutil de divisão */
+}
+
+th {
+  background-color: #1C1C1C; /* Cabeçalho escuro */
+  color: #00FFFF; /* Azul claro suave */
+}
+
+tr:nth-child(odd) {
+  background-color: #2F2F2F; /* Cinza mais escuro para linhas ímpares */
+}
+
+tr:nth-child(even) {
+  background-color: #383838; /* Cinza um pouco mais claro */
+}
+
+input[type="text"] {
+  padding: 10px;
+  border: 1px solid #C0C0C0;
+  border-radius: 5px;
+  width: 100%;
+  margin-top: 5px;
+  background-color: #1C1C1C;
+  color: #C0C0C0;
+}
+
+input[type="text"]::placeholder {
+  color: #8A9CBF; /* Placeholder cinza azulado suave */
+}
+
+.aceitar-btn {
+  padding: 10px;
+  background-color: #7B68EE; /* Roxo da página de login */
+  border: none;
+  color: #1C1C1C; /* Texto escuro no botão */
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.aceitar-btn:hover {
+  background-color: #5A4DB2; /* Roxo mais escuro no hover */
+}
+
+.recusar-btn {
+  background-color: #FFB300; /* Amarelo mostarda vibrante */
+  color: #1C1C1C; /* Texto escuro para contraste */
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.recusar-btn:hover {
+  background-color: #CC8A00; /* Tom mais escuro no hover */
+}
