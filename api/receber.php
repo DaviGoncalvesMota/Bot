@@ -203,18 +203,16 @@ if ($total_clientes == 1 && $nome_cliente && $situacao_cliente == "") {
 
         if ($query) {
             insertPedidos(
-                id_cliente: $id_cliente, 
-                nome: $nome_cliente, 
-                email_painel: $email_painel, 
+                id_cliente: $id_cliente,
+                nome: $nome_cliente,
+                email_painel: $email_painel,
                 telefone: $numero_get,
-                endereco: $endereco, 
-                status: $nome_produto, 
+                endereco: $endereco,
+                status: $nome_produto,
                 data_hora: $data_hora
             );
 
-            $msg = "❗ *Envie apenas números!*
-
-Quantas(os) $nome_produto
+            $msg = "Quantas(os) $nome_produto
 você gostaria de pedir?
                             
 É só digitar: *1*, *2* ou *3*,  
@@ -229,26 +227,24 @@ caso queira a descrição completa do item, digite *desc*
 
         }
     } else {
-        $msg .= "❗ *Envie apenas números!*\n\n";
+        $msg .= "❗*Envie apenas números!*\n\n";
         $msg .= "Aqui estão os produtos disponíveis,\njuntamente com seus respectivos preços:\n\n";
 
         $msg .= selectProdutos(email_painel: $usuario_get);
 
         $msg .= "\nPara selecionar seu produto, basta\n";
         $msg .= "enviar o número correspondente a ele.\n";
-        $msg .= "Estamos prontos para atendê-lo!";
 
         insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
     }
 }
 
-// Pepperoni
 if ($situacao_cliente == "compra_produto" && $nome_cliente) {
     if (ehNumero(texto: $msg_get)) {
         defUpdatePedidos(set: 'qtd_produtos', msg_get: $msg_get, email_painel: $email_painel, numero_get: $numero_get, status: $nome_produto);
 
         if ($query) {
-            $busca_pedidos = "SELECT * FROM pedidos WHERE email_painel = '$usuario_get' AND telefone = '$numero_get' AND status = 'compra_produto'";
+            $busca_pedidos = "SELECT * FROM pedidos WHERE email_painel = '$usuario_get' AND telefone = '$numero_get' AND status = '$nome_produto'";
             $pedidos = mysqli_query(mysql: $conn, query: $busca_pedidos);
 
             while ($dados_pedidos = mysqli_fetch_array(result: $pedidos)) {
@@ -262,32 +258,25 @@ if ($situacao_cliente == "compra_produto" && $nome_cliente) {
                 $data_hora_pedido = $dados_pedidos['data_hora'];
                 $email_painel = $dados_pedidos['email_painel'];
             }
- 
+
             $hora = date("H:i", strtotime($data_hora_pedido));
             $data = date("d/m/Y", strtotime($data_hora_pedido));
 
             if ($qtd_produtos > 0) {
-                $pedido = "*$qtd_produtos* - $status";
+                $pedido .= "*$qtd_produtos* - $status";
             }
 
-            $total_pepperoni_p = $qtd_pepperoni_p * $prod_pepperoni;
-            $total_frango_p = $qtd_frango_p * $prod_frango;
-            $total_quatroqueijos_p = $qtd_quatroqueijos_p * $prod_quatroqueijos;
-            $total_brigadeiro_p = $qtd_brigadeiro_p * $prod_brigadeiro;
+            $total = $qtd_produtos * $preco_produto;
 
-            $total_geral_p = $total_pepperoni_p + $total_frango_p + $total_quatroqueijos_p + $total_brigadeiro_p;
-
-            $msg = "📋Nota Fiscal - Pedido de Pizzas🍕
-📅 Data: $data_p
-🕒 Hora: $hora_p
+            $msg = "📋Nota Fiscal
+📅 Data: $data
+🕒 Hora: $hora
             
 🛒 Pedido: 
-$pedido1_p
-$pedido2_p
-$pedido3_p
-$pedido4_p
+$pedido\n
+
             
-💸 Total: R$ $total_geral_p
+💸 Total: R$ $total
     ";
 
             insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
@@ -295,21 +284,17 @@ $pedido4_p
             if ($query) {
                 updateSituacao(telefone: $numero_get, situacao: 'inicio_compra', email_painel: $email_painel);
 
-                $atualizaPedidosPepperoni = "UPDATE pedidos SET status = 'inicio_compra' WHERE email_painel = '$usuario_get' AND status = 'compra_pepperoni'";
-                $query = mysqli_query(mysql: $conn, query: $atualizaPedidosPepperoni);
+                defUpdatePedidos(set: 'status', msg_get: 'inicio_compra', email_painel: $email_painel, numero_get: $numero_get, status: $nome_produto);
 
                 if ($query) {
-                    $msg = "*Escolha outro sabor de pizza ou encerre a compra*:
+                    $msg = "*Escolha outro produto ou encerre a compra*:\n\n";
 
-    🍕(1) *Pepperoni* - R$ $prod_pepperoni
-    🍕(2) *Frango* - R$ $prod_frango
-    🍕(3) *Quatro Queijos* - R$ $prod_quatroqueijos
-    🍕(4) *Brigadeiro* - R$ $prod_brigadeiro
-    🛒(5) *Finalizar Compra*
-        
-Para selecionar sua pizza, basta
-enviar o número correspondente a
-ela. Estamos prontos para atende-lo!";
+                    selectProdutos(email_painel: $usuario_get);
+                    $msg .= "🛒(5) *Finalizar Compra*";
+
+                    $msg .= "Para selecionar seu produto, basta\n";
+                    $msg .= "enviar o número correspondente a\n";
+                    $msg .= "ele. Estamos prontos para atende-lo!\n";
 
                     insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
                 }
@@ -318,431 +303,71 @@ ela. Estamos prontos para atende-lo!";
     } else {
         $msg = "⚠️ *Ops! Envie apenas números, por favor!*
 
-Quantas pizzas de *Pepperoni* 🍕 você deseja?
+Quantas(os) $nome_produto você deseja?
 
 Digite um número como: *1*, *2* ou *3*  
 de acordo com a quantidade que quer pedir.  
-Estamos preparando tudo com carinho! 
-
 ";
         insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
 
-
     }
 }
 
-// Frango
-if ($situacao_cliente == "compra_frango" && $nome_cliente) {
-    if (ehNumero(texto: $msg_get)) {
-        defUpdatePedidos(set: 'qtd_frango', msg_get: $msg_get, email_painel: $email_painel, numero_get: $numero_get, status: $status = 'compra_pepperoni');
+$produto_selecionado = "SELECT numero_produto FROM produtos WHERE email_painel = '$usuario_get' AND numero_produto = '$msg_get'";
+$query = mysqli_query(mysql: $conn, query: $produto_selecionado);
 
-        if ($query) {
-            $busca_pedidos_frango = "SELECT * FROM pedidos WHERE email_painel = '$usuario_get' AND telefone = '$numero_get' AND status = 'compra_frango'";
-            $pedidos_frango = mysqli_query(mysql: $conn, query: $busca_pedidos_frango);
+while ($produto = mysqli_fetch_array($query)) {
+    $nome_produto = $produto['nome'];
+}
 
-            while ($dados_pedidos = mysqli_fetch_array(result: $pedidos_frango)) {
-                $id_pedido_f = $dados_pedidos['id'];
-                $nome_pedido_f = $dados_pedidos['nome'];
-                $telefone_pedido_f = $dados_pedidos['telefone'];
-                $endereco_pedido_f = $dados_pedidos['endereco'];
-                $qtd_pepperoni_f = $dados_pedidos['qtd_pepperoni'];
-                $qtd_frango_f = $dados_pedidos['qtd_frango'];
-                $qtd_quatroqueijos_f = $dados_pedidos['qtd_quatroqueijos'];
-                $qtd_brigadeiro_f = $dados_pedidos['qtd_brigadeiro'];
-                $forma_pagamento_f = $dados_pedidos['pagamento'];
-                $status_f = $dados_pedidos['status'];
-                $data_hora_pedido_f = $dados_pedidos['data_hora'];
-                $email_painel_f = $dados_pedidos['email_painel'];
-            }
-
-            $hora_f = date("H:i", strtotime($data_hora_pedido_f));
-            $data_f = date("d/m/Y", strtotime($data_hora_pedido_f));
-
-
-            if ($qtd_pepperoni_f > 0) {
-                $pedido1_f = "*$qtd_pepperoni_f* - Pepperoni 🍕";
-            }
-            if ($qtd_frango_f > 0) {
-                $pedido2_f = "*$qtd_frango_f* - Frango 🍕";
-            }
-            if ($qtd_quatroqueijos_f > 0) {
-                $pedido3_f = "*$qtd_quatroqueijos_f* - Quatro Queijos 🍕";
-            }
-            if ($qtd_brigadeiro_f > 0) {
-                $pedido4_f = "*$qtd_brigadeiro_f* - Brigadeiro 🍕";
-            }
-
-            $total_pepperoni_f = $qtd_pepperoni_f * $prod_pepperoni;
-            $total_frango_f = $qtd_frango_f * $prod_frango;
-            $total_quatroqueijos_f = $qtd_quatroqueijos_f * $prod_quatroqueijos;
-            $total_brigadeiro_f = $qtd_brigadeiro_f * $prod_brigadeiro;
-
-            $total_geral_f = $total_pepperoni_f + $total_frango_f + $total_quatroqueijos_f + $total_brigadeiro_f;
-
-            $msg = "📋Nota Fiscal - Pedido de Pizzas🍕
-📅 Data: $data_f
-🕒 Hora: $hora_f
-            
-🛒 Pedido: 
-$pedido1_f
-$pedido2_f
-$pedido3_f
-$pedido4_f
-            
-💸 Total: R$ $total_geral_f
-    ";
-
-            insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
-
-            if ($query) {
-                updateSituacao(telefone: $numero_get, situacao: 'inicio_compra', email_painel: $email_painel);
-
-                $atualizaPedidosFrango = "UPDATE pedidos SET status = 'inicio_compra' WHERE email_painel = '$usuario_get' AND status = 'compra_frango'";
-                $query = mysqli_query(mysql: $conn, query: $atualizaPedidosFrango);
-
-                if ($query) {
-                    $msg = "*Escolha outro sabor de pizza ou encerre a compra*:
-
-    🍕(1) *Pepperoni* - R$ $prod_pepperoni
-    🍕(2) *Frango* - R$ $prod_frango
-    🍕(3) *Quatro Queijos* - R$ $prod_quatroqueijos
-    🍕(4) *Brigadeiro* - R$ $prod_brigadeiro
-    🛒(5) *Finalizar Compra*
-        
-Para selecionar sua pizza, basta
-enviar o número correspondente a
-ela. Estamos prontos para atende-lo!";
-
-                    insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
-                }
-            }
-        }
-    } else {
-        $msg = "⚠️ *Ops! Envie apenas números, por favor!*
-
-Quantas pizzas de *Pepperoni* 🍕 você deseja?
-
-Digite um número como: *1*, *2* ou *3*  
-de acordo com a quantidade que quer pedir.  
-Estamos preparando tudo com carinho! ";
+if ($query) {
+    if ($msg_get == $produto_selecionado && $msg_get != "5") {
+        $msg = "Você selecionou o produto *$nome_produto*.\n";
+        $msg .= "Quantas(os) você gostaria de pedir?";
 
         insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
+
+        updateSituacao(telefone: $numero_get, situacao: 'compra_produto', email_painel: $email_painel);
+
     }
 }
 
-// QuatroQueijos
-if ($situacao_cliente == "compra_quatroqueijos" && $nome_cliente) {
-    if (ehNumero(texto: $msg_get)) {
-        defUpdatePedidos(set: 'qtd_quatroqueijos', msg_get: $msg_get, email_painel: $email_painel, numero_get: $numero_get, status: $status = 'compra_pepperoni');
+if ($msg_get == "5") {
+    defUpdatePedidos(set: 'status', msg_get: 'pagamento', email_painel: $email_painel, numero_get: $numero_get, status: '$nome_produto');
+    updateSituacao(telefone: $numero_get, situacao: 'pagamento', email_painel: $email_painel);
 
-        if ($query) {
-            $busca_pedidos_quatroqueijos = "SELECT * FROM pedidos WHERE email_painel = '$usuario_get' AND telefone = '$numero_get' AND status = 'compra_quatroqueijos'";
-            $pedidos_quatroqueijos = mysqli_query(mysql: $conn, query: $busca_pedidos_quatroqueijos);
-
-            while ($dados_pedidos = mysqli_fetch_array(result: $pedidos_quatroqueijos)) {
-                $id_pedido_q = $dados_pedidos['id'];
-                $nome_pedido_q = $dados_pedidos['nome'];
-                $telefone_pedido_q = $dados_pedidos['telefone'];
-                $endereco_pedido_q = $dados_pedidos['endereco'];
-                $qtd_pepperoni_q = $dados_pedidos['qtd_pepperoni'];
-                $qtd_frango_q = $dados_pedidos['qtd_frango'];
-                $qtd_quatroqueijos_q = $dados_pedidos['qtd_quatroqueijos'];
-                $qtd_brigadeiro_q = $dados_pedidos['qtd_brigadeiro'];
-                $forma_pagamento_q = $dados_pedidos['pagamento'];
-                $status_q = $dados_pedidos['status'];
-                $data_hora_pedido_q = $dados_pedidos['data_hora'];
-                $email_painel_q = $dados_pedidos['email_painel'];
-            }
-
-            $hora_q = date("H:i", strtotime($data_hora_pedido_q));
-            $data_q = date("d/m/Y", strtotime($data_hora_pedido_q));
-
-
-            if ($qtd_pepperoni_q > 0) {
-                $pedido1_q = "*$qtd_pepperoni_q* - Pepperoni 🍕";
-            }
-            if ($qtd_frango_q > 0) {
-                $pedido2_q = "*$qtd_frango_q* - Frango 🍕";
-            }
-            if ($qtd_quatroqueijos_q > 0) {
-                $pedido3_q = "*$qtd_quatroqueijos_q* - Quatro Queijos 🍕";
-            }
-            if ($qtd_brigadeiro_q > 0) {
-                $pedido4_q = "*$qtd_brigadeiro_q* - Brigadeiro 🍕";
-            }
-
-            $total_pepperoni_q = $qtd_pepperoni_q * $prod_pepperoni;
-            $total_frango_q = $qtd_frango_q * $prod_frango;
-            $total_quatroqueijos_q = $qtd_quatroqueijos_q * $prod_quatroqueijos;
-            $total_brigadeiro_q = $qtd_brigadeiro_q * $prod_brigadeiro;
-
-            $total_geral_q = $total_pepperoni_q + $total_frango_q + $total_quatroqueijos_q + $total_brigadeiro_q;
-
-            $msg = "📋Nota Fiscal - Pedido de Pizzas🍕
-📅 Data: $data_q
-🕒 Hora: $hora_q
-            
-🛒 Pedido: 
-$pedido1_q
-$pedido2_q
-$pedido3_q
-$pedido4_q
-            
-💸 Total: R$ $total_geral_q
-    ";
-
-            insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
-
-            if ($query) {
-                updateSituacao(telefone: $numero_get, situacao: 'inicio_compra', email_painel: $email_painel);
-
-                $atualizaPedidosQuatroQueijos = "UPDATE pedidos SET status = 'inicio_compra' WHERE email_painel = '$usuario_get' AND status = 'compra_quatroqueijos'";
-                $query = mysqli_query(mysql: $conn, query: $atualizaPedidosQuatroQueijos);
-
-                if ($query) {
-                    $msg = "*Escolha outro sabor de pizza ou encerre a compra*:
-
-    🍕(1) *Pepperoni* - R$ $prod_pepperoni
-    🍕(2) *Frango* - R$ $prod_frango
-    🍕(3) *Quatro Queijos* - R$ $prod_quatroqueijos
-    🍕(4) *Brigadeiro* - R$ $prod_brigadeiro
-    🛒(5) *Finalizar Compra*
-        
-Para selecionar sua pizza, basta
-enviar o número correspondente a
-ela. Estamos prontos para atende-lo!";
-
-                    insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
-                }
-            }
+    if ($query) {
+        if ($dinheiro_painel > 0) {
+            $din = "*(1)* Dinheiro 💸";
         }
-    } else {
-        $msg = "⚠️ *Ops! Envie apenas números, por favor!*
-
-Quantas pizzas de *Quatro Queijos* 🍕 você deseja?
-
-Digite um número como: *1*, *2* ou *3*  
-de acordo com a quantidade que quer pedir.  
-Estamos preparando tudo com carinho! ";
-
-        insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
-    }
-}
-
-
-// Brigadeiro
-if ($situacao_cliente == "compra_brigadeiro" && $nome_cliente) {
-    if (ehNumero(texto: $msg_get)) {
-        defUpdatePedidos(set: 'qtd_brigadeiro', msg_get: $msg_get, email_painel: $email_painel, numero_get: $numero_get, status: $status = 'compra_pepperoni');
-
-        if ($query) {
-            $busca_pedidos_brigadeiro = "SELECT * FROM pedidos WHERE email_painel = '$usuario_get' AND telefone = '$numero_get' AND status = 'compra_brigadeiro'";
-            $pedidos_brigadeiro = mysqli_query(mysql: $conn, query: $busca_pedidos_brigadeiro);
-
-            while ($dados_pedidos = mysqli_fetch_array(result: $pedidos_brigadeiro)) {
-                $id_pedido_b = $dados_pedidos['id'];
-                $nome_pedido_b = $dados_pedidos['nome'];
-                $telefone_pedido_b = $dados_pedidos['telefone'];
-                $endereco_pedido_b = $dados_pedidos['endereco'];
-                $qtd_pepperoni_b = $dados_pedidos['qtd_pepperoni'];
-                $qtd_frango_b = $dados_pedidos['qtd_frango'];
-                $qtd_quatroqueijos_b = $dados_pedidos['qtd_quatroqueijos'];
-                $qtd_brigadeiro_b = $dados_pedidos['qtd_brigadeiro'];
-                $forma_pagamento_b = $dados_pedidos['pagamento'];
-                $status_b = $dados_pedidos['status'];
-                $data_hora_pedido_b = $dados_pedidos['data_hora'];
-                $email_painel_b = $dados_pedidos['email_painel'];
-            }
-
-            $hora_b = date("H:i", strtotime($data_hora_pedido_b));
-            $data_b = date("d/m/Y", strtotime($data_hora_pedido_b));
-
-
-            if ($qtd_pepperoni_b > 0) {
-                $pedido1_b = "*$qtd_pepperoni_b* - Pepperoni 🍕";
-            }
-            if ($qtd_frango_b > 0) {
-                $pedido2_b = "*$qtd_frango_b* - Frango 🍕";
-            }
-            if ($qtd_quatroqueijos_b > 0) {
-                $pedido3_b = "*$qtd_quatroqueijos_b* - Quatro Queijos 🍕";
-            }
-            if ($qtd_brigadeiro_b > 0) {
-                $pedido4_b = "*$qtd_brigadeiro_b* - Brigadeiro 🍕";
-            }
-
-            $total_pepperoni_b = $qtd_pepperoni_b * $prod_pepperoni;
-            $total_frango_b = $qtd_frango_b * $prod_frango;
-            $total_quatroqueijos_b = $qtd_quatroqueijos_b * $prod_quatroqueijos;
-            $total_brigadeiro_b = $qtd_brigadeiro_b * $prod_brigadeiro;
-
-            $total_geral_b = $total_pepperoni_b + $total_frango_b + $total_quatroqueijos_b + $total_brigadeiro_b;
-
-            $msg = "📋Nota Fiscal - Pedido de Pizzas🍕
-📅 Data: $data_b
-🕒 Hora: $hora_b
-            
-🛒 Pedido: 
-$pedido1_b
-$pedido2_b
-$pedido3_b
-$pedido4_b
-            
-💸 Total: R$ $total_geral_b
-    ";
-
-            insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
-
-            if ($query) {
-                updateSituacao(telefone: $numero_get, situacao: 'inicio_compra', email_painel: $email_painel);
-
-                $atualizaPedidosBrigadeiro = "UPDATE pedidos SET status = 'inicio_compra' WHERE email_painel = '$usuario_get' AND status = 'compra_brigadeiro'";
-                $query = mysqli_query(mysql: $conn, query: $atualizaPedidosBrigadeiro);
-
-                if ($query) {
-                    $msg = "*Escolha outro sabor de pizza ou encerre a compra*:
-
-    🍕(1) *Pepperoni* - R$ $prod_pepperoni
-    🍕(2) *Frango* - R$ $prod_frango
-    🍕(3) *Quatro Queijos* - R$ $prod_quatroqueijos
-    🍕(4) *Brigadeiro* - R$ $prod_brigadeiro
-    🛒(5) *Finalizar Compra*
-        
-Para selecionar sua pizza, basta
-enviar o número correspondente a
-ela. Estamos prontos para atende-lo!";
-
-                    insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
-                }
-            }
+        if ($pix_painel > 0) {
+            $pix = "*(2)* Pix 📲";
         }
-    } else {
-        $msg = "⚠️ *Ops! Envie apenas números, por favor!*
-
-Quantas pizzas de *Brigadeiro* 🍕 você deseja?
-
-Digite um número como: *1*, *2* ou *3*  
-de acordo com a quantidade que quer pedir.  
-Estamos preparando tudo com carinho! ";
-
-        insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
-    }
-}
-
-if ($situacao_cliente == 'inicio_compra' && $nome_cliente) {
-    if (ehNumero(texto: $msg_get)) {
-        if ($msg_get == "1") {
-            updateSituacao(telefone: $numero_get, situacao: 'compra_pepperoni', email_painel: $email_painel);
-
-            defUpdatePedidos(set: 'status', msg_get: 'compra_pepperoni', email_painel: $email_painel, numero_get: $numero_get, status: $status = 'inicio_compra');
-
-            if ($query) {
-                $msg = "Quantas pizzas de *Pepperoni* 🍕 você deseja?
-                
-Digite um número como: *1*, *2* ou *3*  
-de acordo com a quantidade que quer pedir.  
-
-Estamos preparando tudo com carinho! 😊                    
-Obrigado!";
-
-                insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
-            }
-
+        if ($cartao_painel > 0) {
+            $cartao = "*(3)* Cartão de Crédito 💳";
         }
-        if ($msg_get == "2") {
-            updateSituacao(telefone: $numero_get, situacao: 'compra_frango', email_painel: $email_painel);
-
-            defUpdatePedidos(set: 'status', msg_get: 'compra_frango', email_painel: $email_painel, numero_get: $numero_get, status: $status = 'inicio_compra');
-
-            $msg = "Quantas pizzas de *Frango* 🍕 você deseja?
-                
-Digite um número como: *1*, *2* ou *3*  
-de acordo com a quantidade que quer pedir.  
-
-Estamos preparando tudo com carinho! 😊     
-Obrigado!";
-
-
-            insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
-
+        if ($caderneta_painel > 0) {
+            $caderneta = "*(4)* Caderneta 📖";
         }
-        if ($msg_get == "3") {
 
-            updateSituacao(telefone: $numero_get, situacao: 'compra_quatroqueijos', email_painel: $email_painel);
-
-            defUpdatePedidos(set: 'status', msg_get: 'compra_quatroqueijos', email_painel: $email_painel, numero_get: $numero_get, status: $status = 'inicio_compra');
-
-            $msg = "Quantas pizzas de *Quatro Queijos* 🍕 você deseja?
-                
-Digite um número como: *1*, *2* ou *3*  
-de acordo com a quantidade que quer pedir.  
-
-Estamos preparando tudo com carinho! 😊
-Obrigado!";
-
-            insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
-
-        }
-        if ($msg_get == "4") {
-
-            updateSituacao(telefone: $numero_get, situacao: 'compra_brigadeiro', email_painel: $email_painel);
-
-            defUpdatePedidos(set: 'status', msg_get: 'compra_brigadeiro', email_painel: $email_painel, numero_get: $numero_get, status: $status = 'inicio_compra');
-
-            $msg = "Quantas pizzas de *Brigadeiro* 🍕 você deseja?
-                
-Digite um número como: *1*, *2* ou *3*  
-de acordo com a quantidade que quer pedir.  
-            
-Estamos preparando tudo com carinho! 😊
-Obrigado!";
-
-            insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
-
-        }
-        if ($msg_get == "5") {
-            defUpdatePedidos(set: 'status', msg_get: 'pagamento', email_painel: $email_painel, numero_get: $numero_get, status: $status = 'inicio_compra');
-            updateSituacao(telefone: $numero_get, situacao: 'pagamento', email_painel: $email_painel);
-
-            if ($query) {
-                if ($dinheiro_painel > 0) {
-                    $din = "*(1)* Dinheiro 💸";
-                }
-                if ($pix_painel > 0) {
-                    $pix = "*(2)* Pix 📲";
-                }
-                if ($cartao_painel > 0) {
-                    $cartao = "*(3)* Cartão de Crédito 💳";
-                }
-                if ($caderneta_painel > 0) {
-                    $caderneta = "*(4)* Caderneta 📖";
-                }
-
-                $msg = "Escolha a forma de pagamento:
+        $msg = "Escolha a forma de pagamento:
 
 $din
 $pix
 $cartao
 $caderneta";
 
-                insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
-            }
-        }
-    } else {
-        $msg = "*Envie apenas números por favor*:
-
-    🍕(1) *Pepperoni* - R$ $prod_pepperoni
-    🍕(2) *Frango* - R$ $prod_frango
-    🍕(3) *Quatro Queijos* - R$ $prod_quatroqueijos
-    🍕(4) *Brigadeiro* - R$ $prod_brigadeiro
-    🛒(5) *Finalizar Compra*
-        
-Para selecionar sua pizza, basta
-enviar o número correspondente a
-ela. Estamos prontos para atende-lo!";
-
-
+        insertEnvios(telefone: $numero_get, mensagem: $msg, status: '1', usuario: $usuario_get);
     }
+} else {
+    $msg .= "*Envie apenas números por favor*:";
+
+    selectProdutos(email_painel: $usuario_get);
+    $msg .= "🛒(5) *Finalizar Compra*";
+
+    $msg .= "Para selecionar seu produto, basta";
+    $msg .= "enviar o número correspondente a";
+    $msg .= "ele. Estamos prontos para atende-lo!";
 }
 
 if ($situacao_cliente == "pagamento" && $nome_cliente) {
@@ -918,10 +543,7 @@ if ($situacao_cliente == "confirmar_endereco" && $nome_cliente) {
                 $telefone_pedido_final = $dados_pedido['telefone'];
                 $endereco_pedido_final = $dados_pedido['endereco'];
                 $pagamento_pedido_final = $dados_pedido['pagamento'];
-                $qtd_pepperoni_final = $dados_pedido['qtd_pepperoni'];
-                $qtd_frango_final = $dados_pedido['qtd_frango'];
-                $qtd_quatroqueijos_final = $dados_pedido['qtd_quatroqueijos'];
-                $qtd_brigadeiro_final = $dados_pedido['qtd_brigadeiro'];
+                $qtd_produtos_final = $dados_pedido['qtd_produtos'];
                 $status_pedido_final = $dados_pedido['status'];
                 $data_hora_pedido_final = $dados_pedido['data_hora'];
             }

@@ -14,7 +14,7 @@ def verificar_login(login, senha):
     agent = {
         "User-Agent": 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36'
     }
-    resposta = requests.get("http://localhost/bot_delivery/api/tela.php", params={'login': login, 'senha': senha}, headers=agent)
+    resposta = requests.get("http://localhost:8080/bot_delivery/api/tela.php", params={'login': login, 'senha': senha}, headers=agent)
     return resposta.text.strip(), agent
 
 def iniciar_bot_selenium(usuario, agent):
@@ -32,9 +32,9 @@ def iniciar_bot_selenium(usuario, agent):
     contato_cliente = api[4].strip()
     msg_cliente = api[6].strip()
 
-    pagina = 'http://localhost/bot_delivery/api/receber.php?'
-    servidor_enviar = 'http://localhost/bot_delivery/api/enviar.php?'
-    servidor_confirmar = 'http://localhost/bot_delivery/api/confirmar.php?'
+    pagina = 'http://localhost:8080/bot_delivery/api/receber.php?'
+    servidor_enviar = 'http://localhost:8080/bot_delivery/api/enviar.php?'
+    servidor_confirmar = 'http://localhost:8080/bot_delivery/api/confirmar.php?'
 
     while True:
         try:
