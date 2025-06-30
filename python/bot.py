@@ -64,7 +64,7 @@ def iniciar_bot_selenium(usuario, agent):
                     caixa_de_pesquisa.send_keys(contato_enviar)
                     caixa_de_pesquisa.send_keys(Keys.ENTER)
 
-                    message_box = driver.find_element(By.XPATH, '//*[@id="main"]/footer/div[1]/div/span/div/div[2]/div[1]/div[2]/div[1]/p')
+                    message_box = driver.find_element(By.XPATH, '//*[@id="main"]/footer/div[1]/div/span/div/div[2]/div/div[3]/div[1]/p')
                     clipboard.copy(mensagem_enviar)
                     message_box.send_keys(Keys.CONTROL, "v")
                     message_box.send_keys(Keys.ENTER)

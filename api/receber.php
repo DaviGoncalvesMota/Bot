@@ -188,24 +188,14 @@ if ($total_clientes == 1 && empty($nome_cliente)) {
     $msg = "⭐ Bem-vindo, *$msg_usuario*, ao nosso delivery! ⭐\n\n";
     $msg .= "Aqui estão os produtos disponíveis:\n\n";
     $msg .= selectProdutos($usuario_get);
-    $msg .= "Envie o número do produto para escolhê-lo.";
+    $msg .= "Envie o número do produto para escolhê-lo.\n🛒 (5) *Finalizar Compra*";
 
     insertEnvios($numero_get, $msg, '1', $usuario_get);
     return;
 }
 
-if ($situacao_cliente == "inicio_compra" && ehNumero($msg_get)) {
-
-    insertPedidos(
-        id_cliente: $id_cliente,
-        nome: $nome_cliente,
-        email_painel: $usuario_get,
-        telefone: $numero_get,
-        endereco: $endereco_cliente,
-        status: 'compra',
-        data_hora: $data_hora
-    );
-
+// 2. CLIENTE ESCOLHE UM PRODUTO
+if ($situacao_cliente == "inicio_compra" && ehNumero($msg_get) && $msg_get != "5") {
     $sql = "SELECT * FROM produtos WHERE email_painel = '$usuario_get' AND numero_produto = '$msg_get'";
     $query = mysqli_query($conn, $sql);
 
@@ -214,47 +204,107 @@ if ($situacao_cliente == "inicio_compra" && ehNumero($msg_get)) {
         $nome_produto = $produto['nome'];
 
         // Armazena produto temporariamente
-        $update = "UPDATE clientes SET produto_temp = '$nome_produto', situacao = 'aguardando_quantidade' WHERE email_painel = '$usuario_get' AND telefone = '$numero_get'";
+        $update = "UPDATE clientes SET produto_temp = '$nome_produto', situacao = 'aguardando_quantidade' 
+                   WHERE email_painel = '$usuario_get' AND telefone = '$numero_get'";
         mysqli_query($conn, $update);
 
         $msg = "Você escolheu *$nome_produto*.\nQuantas unidades deseja?\nExemplo: *1*, *2*, *3*...";
         insertEnvios($numero_get, $msg, '1', $usuario_get);
     }
-
+    else {
+        insertEnvios($numero_get, "❌ Produto não encontrado. Por favor, escolha um produto válido.", '1', $usuario_get);
+    }
     return;
 }
 
-
+// 3. CLIENTE INFORMA QUANTIDADE
 if ($situacao_cliente == "aguardando_quantidade" && ehNumero($msg_get)) {
-    // Recupera produto temporário
+    $qtd = intval($msg_get);
+
+    // Recupera o produto
     $sql = "SELECT produto_temp FROM clientes WHERE email_painel = '$usuario_get' AND telefone = '$numero_get'";
     $res = mysqli_query($conn, $sql);
     $row = mysqli_fetch_assoc($res);
     $nome_produto = $row['produto_temp'];
 
-    // Cria ou atualiza pedido
-    defUpdatePedidos(set: 'qtd_produtos', msg_get: $msg_get, email_painel: $usuario_get, numero_get: $numero_get, status: $nome_produto);
-    defUpdatePedidos(set: 'status', msg_get: 'compra', email_painel: $usuario_get, numero_get: $numero_get, status: $nome_produto);
-
-    // Nota fiscal
-    $qtd = $msg_get;
+    // Preço e total
     $preco = getPrecoProduto($usuario_get, $nome_produto);
     $total = $preco * $qtd;
-    $data = date("d/m/Y");
-    $hora = date("H:i");
+    $data = date("Y-m-d H:i:s");
 
-    $msg = "📋Nota Fiscal\n📅 Data: $data\n🕒 Hora: $hora\n\n🛒 Pedido:\n*$qtd* - $nome_produto\n\n💸 Total: R$ $total";
+    // Verifica se já existe um pedido "aberto" para o cliente
+    $queryPedido = "SELECT id_cliente FROM pedidos WHERE telefone = '$numero_get' AND email_painel = '$usuario_get' AND status = 'compra'";
+    $resultPedido = mysqli_query($conn, $queryPedido);
+
+    if (mysqli_num_rows($resultPedido) > 0) {
+        // Já existe pedido, pega o ID
+        $pedido = mysqli_fetch_assoc($resultPedido);
+        $id_pedido = $pedido['id_cliente'];
+
+        defUpdatePedidos('qtd_produtos', $qtd, $usuario_get, $numero_get, 'compra');
+    } else {
+        // Cria novo pedido
+        $insertPedido = "INSERT INTO pedidos (id_cliente, nome, email_painel, telefone, endereco, status, data_hora)
+                         VALUES ('$id_cliente', '$nome_cliente', '$usuario_get', '$numero_get', '$endereco_cliente', 'compra', '$data')";
+        mysqli_query($conn, $insertPedido);
+        $id_pedido = mysqli_insert_id($conn);
+    }
+
+    // Mostra parcial da nota
+    $msg = "🧾 Item adicionado:\n*{$nome_produto}* x{$qtd} = R$ " . number_format($total, 2, ',', '.');
     insertEnvios($numero_get, $msg, '1', $usuario_get);
 
-    // Volta à seleção de produtos
-    $update = "UPDATE clientes SET situacao = 'inicio_compra', produto_temp = NULL WHERE email_painel = '$usuario_get' AND telefone = '$numero_get'";
+    // Volta pra escolha
+    $update = "UPDATE clientes SET situacao = 'inicio_compra', produto_temp = '' 
+               WHERE email_painel = '$usuario_get' AND telefone = '$numero_get'";
     mysqli_query($conn, $update);
 
     $msg = "*Escolha outro produto ou finalize a compra*:\n\n";
     $msg .= selectProdutos($usuario_get);
     $msg .= "\n🛒 (5) *Finalizar Compra*";
-
     insertEnvios($numero_get, $msg, '1', $usuario_get);
+    return;
+}
+
+// 4. FINALIZAR COMPRA
+if ($situacao_cliente == "inicio_compra" && $msg_get == "5") {
+    $sql = "SELECT * FROM pedidos 
+            WHERE email_painel = '$usuario_get' 
+            AND telefone = '$numero_get' 
+            AND status = 'compra'";
+    $res = mysqli_query($conn, $sql);
+
+    if (mysqli_num_rows($res) > 0) {
+        $total_geral = 0;
+        $msg = "📋 *NOTA FISCAL FINAL*\n\n";
+        $msg .= "🧾 Pedido de *$nome_cliente*\n";
+
+        while ($pedido = mysqli_fetch_assoc($res)) {
+            $nome_produto = $pedido['status']; // Aqui você pode trocar por um campo nome_produto se tiver
+            $qtd = $pedido['qtd_produtos'];
+            $preco = getPrecoProduto($usuario_get, $nome_produto);
+            $subtotal = $preco * $qtd;
+            $total_geral += $subtotal;
+
+            $msg .= "\n$nome_produto x$qtd = R$ " . number_format($subtotal, 2, ',', '.');
+        }
+
+        $msg .= "\n\n💸 *Total Geral: R$ " . number_format($total_geral, 2, ',', '.') . "*";
+        $msg .= "\n\n🙏 Obrigado pela preferência!";
+
+        insertEnvios($numero_get, $msg, '1', $usuario_get);
+
+        // Marca pedidos como finalizados
+        $update = "UPDATE pedidos 
+                   SET status = 'finalizado' 
+                   WHERE email_painel = '$usuario_get' 
+                   AND telefone = '$numero_get' 
+                   AND status = 'compra'";
+        mysqli_query($conn, $update);
+    } else {
+        insertEnvios($numero_get, "❌ Nenhum produto adicionado à sua compra ainda. Escolha um produto primeiro.", '1', $usuario_get);
+    }
+
     return;
 }
 
